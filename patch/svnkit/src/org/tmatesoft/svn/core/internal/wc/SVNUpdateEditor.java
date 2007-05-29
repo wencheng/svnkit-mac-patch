@@ -689,7 +689,9 @@ public class SVNUpdateEditor implements ISVNEditor {
                 SVNErrorManager.error(err);
             }
             if (mySwitchURL != null || entry == null) {
-                info.URL = SVNPathUtil.append(parent.URL, SVNEncodingUtil.uriEncode(info.Name));
+            	// wencheng
+                info.URL = SVNPathUtil.append(parent.URL, SVNEncodingUtil.uriEncode(SVNPathUtil.tail(path)));
+                // wencheng end
             } else {
                 info.URL = entry.getURL();
             }

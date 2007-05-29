@@ -14,14 +14,17 @@ import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
 import org.tmatesoft.svn.core.internal.io.fs.FSRepositoryFactory;
 import org.tmatesoft.svn.core.internal.io.svn.SVNRepositoryFactoryImpl;
+import org.tmatesoft.svn.core.internal.util.SVNPathUtil;
 import org.tmatesoft.svn.core.internal.wc.SVNCommitMediator;
 import org.tmatesoft.svn.core.io.ISVNEditor;
 import org.tmatesoft.svn.core.io.SVNRepository;
 import org.tmatesoft.svn.core.io.diff.SVNDeltaGenerator;
+import org.tmatesoft.svn.core.wc.ISVNInfoHandler;
 import org.tmatesoft.svn.core.wc.ISVNOptions;
 import org.tmatesoft.svn.core.wc.ISVNStatusHandler;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNCommitClient;
+import org.tmatesoft.svn.core.wc.SVNInfo;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 import org.tmatesoft.svn.core.wc.SVNStatus;
 import org.tmatesoft.svn.core.wc.SVNStatusClient;
@@ -58,8 +61,8 @@ public class WenchengPatchTests {
 	}
 	
 	public static void initRepo() throws SVNException {
-		SVNUpdateClient updateClient = manager.getUpdateClient();
 		File dst = new File( workdir );
+		SVNUpdateClient updateClient = manager.getUpdateClient();
 		updateClient.doCheckout(url, dst, SVNRevision.HEAD, SVNRevision.HEAD, false);
 	}
 
@@ -70,6 +73,14 @@ public class WenchengPatchTests {
 	}
 	
 	// @AfterClass protected void sth(){};
+	
+	//@Test
+	/**
+	 * import
+	 */
+	public void import1() throws SVNException {
+		
+	}
 	
 	//@Test
 	/**
@@ -123,32 +134,18 @@ public class WenchengPatchTests {
 	 */
 	public void status1() throws SVNException {
 		SVNStatusClient client = manager.getStatusClient();
-		File file = new File( workdir + "/mac_commit/" );
-		manager.getLogClient().doList(file, SVNRevision.HEAD, SVNRevision.HEAD, true,
-				new ISVNDirEntryHandler() {
-					public void handleDirEntry(SVNDirEntry e) throws SVNException {
-						System.out.println( e.getName() );
-					}
-		});
-		/*
-		manager.getWCClient().doInfo(file, SVNRevision.HEAD, true,
-				new ISVNInfoHandler() {
-					public void handleInfo(SVNInfo info) throws SVNException {
-						System.out.println( info.getPath() + " " + info.getURL() + ":" + info.getKind() );
-					}
-		});
-		*/
-		/*
+		File file = new File( workdir );
+		System.out.println("-----------------------------------");
 		client.doStatus(file, true, true, true, false,
 				new ISVNStatusHandler() {
 					public void handleStatus(SVNStatus status) throws SVNException {
-						try {
-							System.out.println( new String(status.getFile().getName().getBytes("UTF-8")) + ":" + status.getContentsStatus() );
-						} catch (UnsupportedEncodingException e) {
-						}
+						System.out.println( status.getFile().getName()
+								+ ":" + SVNPathUtil.tail(status.getURL().toString())
+								+ ":" + status.getContentsStatus() );
 					}
 		});
-		*/
+		System.out.println("-----------------------------------");
+		System.out.println();
 	}
 	
 	//@Test
@@ -169,17 +166,54 @@ public class WenchengPatchTests {
 					}
 		});
 	}
+
+	//@Test
+	/**
+	 * list
+	 * @throws SVNException
+	 */
+	public void list() throws SVNException {
+		File file = new File( workdir + "/mac_commit/" );
+		manager.getLogClient().doList(file, SVNRevision.HEAD, SVNRevision.HEAD, true,
+				new ISVNDirEntryHandler() {
+					public void handleDirEntry(SVNDirEntry e) throws SVNException {
+						System.out.println( e.getName() );
+					}
+		});
+	}
+	
+	//@Test
+	public void info() throws SVNException {
+		File file = new File( workdir + "/mac_commit/" );
+		manager.getWCClient().doInfo(file, SVNRevision.HEAD, true,
+				new ISVNInfoHandler() {
+					public void handleInfo(SVNInfo info) throws SVNException {
+						System.out.println( info.getPath() + " " + info.getURL() + ":" + info.getKind() );
+					}
+		});
+	}
 	
 	//@Test
 	/**
 	 * update local copy for getting a new file
 	 * @throws SVNException 
 	 */
-	public void update() throws SVNException {
+	public void update1() throws SVNException {
 		//addfile("だだ.txt");
 
 		SVNUpdateClient updateClient = manager.getUpdateClient();
 		File dst = new File( workdir );
+		updateClient.doUpdate( dst, SVNRevision.HEAD, true );
+	}
+
+	@Test
+	/**
+	 * update local copy for getting sub-dir
+	 * @throws SVNException 
+	 */
+	public void update2() throws SVNException {
+		SVNUpdateClient updateClient = manager.getUpdateClient();
+		File dst = new File( workdir + "/mac_commit/フォルダだよー/" );
 		updateClient.doUpdate( dst, SVNRevision.HEAD, true );
 	}
 
@@ -196,21 +230,22 @@ public class WenchengPatchTests {
         client.doCommit( new File[]{ new File( workdir + "/mac_commit/日本語だべ2.txt") }, false, "", false, false );
 	}
 	
-	@Test
+	//@Test
 	/**
 	 * add new file
 	 * @throws IOException 
 	 */
 	public void commit2() throws SVNException, IOException {
 		// add
-		File f = new File(workdir + "/mac_commit/日本語だべ4.txt");
+		String filename = workdir + "/mac_commit/日本語だべ_追加.txt";
+		File f = new File(filename);
 		f.createNewFile();
-		manager.getWCClient().doAdd( new File(Normalizer.decompose( workdir + "/mac_commit/日本語だべ4.txt",false)),
+		manager.getWCClient().doAdd( new File(Normalizer.decompose(filename,false)),
 				false, false, false, true );
 
 		// commit
 		SVNCommitClient client = manager.getCommitClient();
-        client.doCommit( new File[]{ new File( workdir + "/mac_commit/日本語だべ4.txt") }, false, "", false, false );
+        client.doCommit( new File[]{ new File(filename) }, false, "", false, false );
 	}
 
 	//@Test
@@ -225,7 +260,115 @@ public class WenchengPatchTests {
 
 		// commit
 		SVNCommitClient client = manager.getCommitClient();
-        client.doCommit( new File[]{ new File( workdir + "/mac_commit/追加ふぉるだ/") }, false, "", false, false );
+		 client.doCommit( new File[]{ new File( workdir + "/mac_commit/追加ふぉるだ/") }, false, "", false, false );
+	}
+	
+	//@Test
+	/**
+	 * copy WC-WC in same dir with different name
+	 */
+	public void copy1() throws SVNException {
+		File srcPath = new File(workdir + "/mac_commit/日本語だべ.txt");
+		File dstPath = new File(workdir + "/mac_commit/フォルダだよー/日本語だべ.txt");
+		manager.getCopyClient().doCopy(srcPath, SVNRevision.HEAD, dstPath, false, false);
+		manager.getCommitClient().doCommit( new File[]{ new File( workdir
+				+ "/mac_commit/フォルダだよー/") }, false, "", false, true );
+	}
+
+	//@Test
+	/**
+	 * copy WC-WC in different dir with same name
+	 */
+	public void copy2() throws SVNException {
+		File srcPath = new File(workdir + "/mac_commit/日本語だべ.txt");
+		File dstPath = new File(workdir + "/mac_commit/日本語だべ2.txt");
+		manager.getCopyClient().doCopy(srcPath, SVNRevision.HEAD, dstPath, false, false);
+		manager.getCommitClient().doCommit( new File[]{ new File( workdir + "/mac_commit/") }, false, "", false, true );
+	}
+
+	//@Test
+	/**
+	 * copy URL-WC in same dir with different name
+	 */
+	public void copy3() throws SVNException {
+		File dstPath = new File(workdir + "/mac_commit/日本語だべ3.txt");
+		manager.getCopyClient().doCopy(url.appendPath(Normalizer.decompose("mac_commit/日本語だべ.txt",false), true),
+				SVNRevision.HEAD, dstPath);
+		manager.getCommitClient().doCommit( new File[]{ new File( workdir + "/mac_commit/") }, false, "", false, true );
+	}
+
+	//@Test
+	/**
+	 * copy URL-WC in different dir with same name
+	 */
+	public void copy4() throws SVNException {
+		File dstPath = new File(workdir + "/mac_commit/フォルダだよー/日本語だべ.txt");
+
+		manager.getCommitClient().doDelete( new SVNURL[]{url.appendPath(Normalizer.compose("mac_commit/フォルダだよー/日本語だべ.txt",false), false)}, "" );
+		manager.getUpdateClient().doUpdate( dstPath, SVNRevision.HEAD, true );
+
+		manager.getCopyClient().doCopy(url.appendPath(Normalizer.decompose("mac_commit/日本語だべ.txt",false), true),
+				SVNRevision.HEAD, dstPath);
+		manager.getCommitClient().doCommit( new File[]{ new File( workdir + "/mac_commit/フォルダだよー/") }, false, "", false, true );
+	}
+
+	//@Test
+	/**
+	 * copy WC-URL
+	 */
+	public void copy5() throws SVNException {
+		File dstPath = new File(workdir + "/mac_commit/日本語だべ.txt");
+		manager.getCopyClient().doCopy(dstPath,SVNRevision.HEAD,
+				url.appendPath(Normalizer.decompose("mac_commit/日本語だべ5.txt",false), false),
+				true, "");
+	}
+
+	//@Test
+	/**
+	 * copy URL-URL
+	 */
+	public void copy6() throws SVNException {
+		manager.getCopyClient().doCopy(
+				url.appendPath(Normalizer.decompose("mac_commit/日本語だべ.txt",false),false),
+				SVNRevision.HEAD,
+				url.appendPath(Normalizer.decompose("mac_commit/日本語だべ6.txt",false), false),
+				false, true, "");
+		manager.getUpdateClient().doUpdate( new File(workdir), SVNRevision.HEAD, true );
+		status1();
+	}
+
+	@Test
+	/**
+	 * copy URL-URL: whole dir
+	 */
+	public void copy7() throws SVNException {
+		manager.getCopyClient().doCopy(
+				url.appendPath("mac_commit",false),
+				SVNRevision.HEAD,
+				url.appendPath(Normalizer.decompose("mac_commit_こぴー",false), false),
+				false, true, "");
+		manager.getUpdateClient().doUpdate( new File(workdir), SVNRevision.HEAD, true );
+		status1();
+	}
+
+	//@Test
+	/**
+	 * delete dir
+	 */
+	public void delete2() throws SVNException {
+		manager.getWCClient().doDelete(new File(workdir+"/mac_commit_こぴー"),
+				false, true, false);
+		//File f = new File(workdir+"/mac_commit_こぴー");
+		//manager.getCommitClient().doCollectCommitItems( new File[]{f},
+		//		false, true, false, false);
+		//manager.getWCClient().doCleanup(f);
+		//manager.getCommitClient().doCommit( new File[]{ f ) },
+		//		false, "", false, true );
+		/*
+		manager.getCommitClient().doDelete( new SVNURL[]{
+				url.appendPath(Normalizer.decompose("mac_commit_こぴー",false), false)
+		}, "");
+		*/
 	}
 
 	/**
@@ -269,10 +412,6 @@ public class WenchengPatchTests {
 
 	//@Test
 	public void delete() {
-	}
-
-	//@Test
-	public void copy() {
 	}
 
 	// copy and delete?
