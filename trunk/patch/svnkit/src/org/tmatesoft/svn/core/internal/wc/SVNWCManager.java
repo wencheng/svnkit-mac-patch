@@ -312,7 +312,9 @@ public class SVNWCManager {
         SVNAdminArea dir = wcAccess.probeTry(path, true, SVNWCAccess.INFINITE_DEPTH);
         SVNEntry entry = null;
         if (dir != null) {
+        	// wencheng
             entry = wcAccess.getEntry(path, false);
+            // wencheng end
         } else {
             SVNWCManager.doDeleteUnversionedFiles(wcAccess, path, deleteFiles);
             return;
@@ -421,7 +423,10 @@ public class SVNWCManager {
                 if (SVNFileUtil.getAdminDirectoryName().equals(children[i].getName())) {
                     continue;
                 }
-                if (versioned.contains(children[i].getName())) {
+                // wencheng
+                //if (versioned.contains(children[i].getName())) {
+                if (versioned.contains(Normalizer.compose(children[i].getName(),false))) {
+                // wencheng end
                     continue;
                 }
                 doDeleteUnversionedFiles(dir.getWCAccess(), children[i], deleteFiles);
