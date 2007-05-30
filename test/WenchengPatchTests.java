@@ -74,12 +74,15 @@ public class WenchengPatchTests {
 	
 	// @AfterClass protected void sth(){};
 	
-	//@Test
+	@Test
 	/**
 	 * import
 	 */
-	public void import1() throws SVNException {
-		
+	public void import1() throws SVNException, IOException {
+		new File("workdir/mac_インポート/ふぉるだ").mkdirs();
+		new File("workdir/mac_インポート/日本語だべ.txt").createNewFile();
+		manager.getCommitClient().doImport( new File("workdir/mac_インポート/"),
+				SVNURL.parseURIEncoded("svn://localhost/svnkit-patch/mac_インポート"), "", true );
 	}
 	
 	//@Test
@@ -93,7 +96,7 @@ public class WenchengPatchTests {
 		updateClient.doUpdate( dst, SVNRevision.HEAD, false );
 	}
 
-	@Test
+	//@Test
 	/**
 	 * checkout file(s) committed by Mac
 	 * (filename is decomposed) 
@@ -128,7 +131,7 @@ public class WenchengPatchTests {
 		updateClient.doCheckout(url.appendPath("mac_commit", true), dst, SVNRevision.HEAD, SVNRevision.HEAD, true);
 	}
 
-	@Test
+	//@Test
 	/**
 	 * get status of whole dir committed from Win 
 	 */
@@ -206,7 +209,7 @@ public class WenchengPatchTests {
 		updateClient.doUpdate( dst, SVNRevision.HEAD, true );
 	}
 
-	@Test
+	//@Test
 	/**
 	 * update local copy for getting sub-dir
 	 * @throws SVNException 
@@ -337,7 +340,7 @@ public class WenchengPatchTests {
 		status1();
 	}
 
-	@Test
+	//@Test
 	/**
 	 * copy URL-URL: whole dir
 	 */
